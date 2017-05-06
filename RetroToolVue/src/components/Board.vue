@@ -1,6 +1,10 @@
 <template>
   <section class="retro-board-container">
-    <div class="retro-board-wrapper">
+  <div>
+    Connection-State is: <em id="connection-state">{{connectionState}}</em>
+  </div>
+
+  <div class="retro-board-wrapper">
       <table class="retro-board-table" cellspacing="0">
         <thead class="retro-board-table-head">
           <tr>
@@ -33,10 +37,12 @@
               </div>
             </td>
             <td v-for="column in columns" class="info-column">
-              <div class="sticki-wrapper">
-                <span title="Add your Stickie">
-                  <i class="fa fa-plus-circle" aria-hidden="true"></i>
-                </span>
+              <new-sticky-form
+                v-if="showNewStickyUI(row.id, column.id)"
+                :new-sticky-location="tableCellId(row.id, column.id)"></new-sticky-form>
+              <button v-else v-on:click="newStickyUI(row.id, column.id)">s</button>
+              <div v-for="sticky in stickies[tableCellId(row.id, column.id)]">
+                <sticky :sticky-id="sticky.id" :sticky-text="sticky.text"></sticky>
               </div>
             </td>
           </tr>
@@ -47,60 +53,75 @@
       <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
     </div>
   </section>
-  <!--<button v-on:click="addColumn">+</button>
-  <button v-on:click="addRow">+</button>-->
 </template>
 
 <script>
   import _ from 'lodash'
+  import * as deepstream from 'deepstream.io-client-js'
+  import shortid from 'shortid'
+  import NewStickyForm from '@/components/NewStickyForm'
+  import Sticky from '@/components/Sticky'
 
   export default {
     name: 'board',
+    components: { NewStickyForm, Sticky },
     data () {
       return {
+        ds: {},
+        name: 'board1',
         columns: [
           {
             label: 'Continue Doing',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Start Doing',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Stop Doing',
-            id: Math.random()
+            id: shortid.generate()
           }
         ],
         rows: [
           {
             label: 'Engineering Practices',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Performance',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Requirements Analysis',
-            id: Math.random()
+            id: shortid.generate()
           }
         ],
-        actionItems: 'Action Items:'
+        actionItems: 'Action Items:',
+        connectionState: null,
+        newStickyUILocation: '',
+        stickies: {}
       }
     },
     methods: {
+      updateBoard: function (key, newData) {
+        this.record.set(key, newData)
+      },
       removeColumn: function (id) {
         this.columns = _.filter(this.columns, column => column.id !== id)
+        this.updateBoard('columns', this.columns)
       },
       removeRow: function (id) {
         this.rows = _.filter(this.rows, row => row.id !== id)
+        this.updateBoard('rows', this.rows)
       },
       addColumn () {
-        this.columns.push({label: 'New Column', id: Math.random()})
+        this.columns.push({label: 'New Column', id: shortid.generate()})
+        this.updateBoard('columns', this.columns)
       },
       addRow () {
-        this.rows.push({label: 'New Row', id: Math.random()})
+        this.rows.push({label: 'New Row', id: shortid.generate()})
+        this.updateBoard('rows', this.rows)
       },
       changeColumnLabel (id, ev) {
         this.columns.splice(
@@ -108,6 +129,7 @@
           1,
           {id: id, label: ev.target.innerText}
         )
+        this.updateBoard('columns', this.columns)
       },
       changeRowLabel (id, ev) {
         this.rows.splice(
@@ -115,7 +137,44 @@
           1,
           {id: id, label: ev.target.innerText}
         )
+        this.updateBoard('rows', this.rows)
+      },
+      newStickyUI (rowId, columnId) {
+        this.newStickyUILocation = this.tableCellId(rowId, columnId)
+      },
+      showNewStickyUI (rowId, columnId) {
+        return this.newStickyUILocation === this.tableCellId(rowId, columnId)
+      },
+      tableCellId (rowId, columnId) {
+        return btoa(`${rowId},${columnId}`)
+      },
+      addSticky (newStickyLocation, stickyId, stickyText) {
+        if (!this.stickies[newStickyLocation]) this.stickies[newStickyLocation] = []
+        this.stickies[newStickyLocation].push({
+          id: stickyId,
+          text: stickyText
+        })
       }
+    },
+    created: function () {
+      this.ds = deepstream('wss://035.deepstreamhub.com?apiKey=930bf8a7-1034-4f37-9721-ac13c12eda95')
+      .login()
+      .on('connectionStateChanged', connectionState => {
+        this.connectionState = connectionState
+      })
+
+      // Get/Set the board
+      this.record = this.ds.record.getRecord('board/' + this.name)
+
+      this.record.subscribe(values => {
+        if (values.rows !== undefined) {
+          this.rows = values.rows
+        }
+        if (values.columns !== undefined) {
+          this.columns = values.columns
+        }
+        this.name = values.name
+      })
     }
   }
 </script>
@@ -184,7 +243,7 @@
     align-items: stretch;
   }
   tr{
-    
+
   }
   th,td {
     padding: 8px 12px;
