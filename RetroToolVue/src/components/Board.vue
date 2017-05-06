@@ -171,6 +171,7 @@
           id: stickyId,
           text: stickyText
         })
+        this.updateBoard('stickies', this.stickies)
       },
       handleDragOver (ev) {
         ev.preventDefault()
@@ -192,6 +193,7 @@
         allOldStickies[newLocation] = [{id: oldStickyData.id, text: oldStickyData.stickyText}]
 
         this.stickies = allOldStickies
+        this.updateBoard('stickies', this.stickies)
       },
       log (foo) {
         console.log(foo)
@@ -222,9 +224,15 @@
         if (values.rows !== undefined) {
           this.rows = values.rows
         }
+
         if (values.columns !== undefined) {
           this.columns = values.columns
         }
+
+        if (values.stickies !== undefined) {
+          this.stickies = values.stickies
+        }
+
         this.name = values.name
       })
     }
