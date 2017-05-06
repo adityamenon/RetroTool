@@ -13,6 +13,7 @@
     "lint": "eslint --ext .js,.vue src test/e2e/specs"
   },
   "dependencies": {
+    "auth0-js": "^8.6.0",
     "deepstream.io-client-js": "^2.1.5",
     "lodash": "^4.17.4",
     "shortid": "^2.2.8",

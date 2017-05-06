@@ -2,7 +2,7 @@
   <div class="sticky-form-container">
     <form class="sticky-form">
       <div class="sticky-form-text-container">
-        <textarea placeholder="Your Sticky Says:" v-model="stickyText"></textarea>
+        <textarea placeholder="Your Sticky Says:" v-model="stickyText" maxlength="100"></textarea>
       </div>
       <div class="sticky-form-action-container">
         <span v-on:click="submitSticky(newStickyLocation, $event)" class="sticky-confirm"><i class="fa fa-check-circle" aria-hidden="true"></i></span>

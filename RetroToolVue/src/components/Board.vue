@@ -5,9 +5,16 @@
       <span class="connection-state-text">
         Connection-State is: <em id="connection-state">{{connectionState}}</em>
       </span>
+      <span v-if="userDetails">
+        {{userDetails.name}}
+        <img :src="userDetails.picture" width="50" height="50">
+        <button v-on:click="logout()"> Logout </button>
+
+      </span>
+      <button v-else v-on:click="login()"> Login </button>
     </div>
   </div>
-  <div class="retro-board-container">  
+  <div class="retro-board-container">
     <div class="retro-board-wrapper">
       <table class="retro-board-table" cellspacing="0">
         <thead class="retro-board-table-head">
@@ -40,11 +47,27 @@
                 <span class="title-info-delete"><i class="fa fa-trash" aria-hidden="true" v-on:click="removeRow(row.id)"></i></span>
               </div>
             </td>
-            <td v-for="column in columns" class="info-column">
-              <div class="info-column-content">
-                <div v-for="sticky in stickies[tableCellId(row.id, column.id)]" class="sticky-content">
-                  <sticky :sticky-id="sticky.id" :sticky-text="sticky.text"></sticky>
-                </div>
+            <td
+              v-for="column in columns"
+              class="info-column"
+              :id="tableCellId(row.id, column.id)"
+            >
+              <div
+                v-on:dragover="handleDragOver($event)"
+                v-on:dragdrop="stickyDrop(tableCellId(row.id, column.id), $event)"
+                v-on:drop="stickyDrop(tableCellId(row.id, column.id), $event)"
+                class="info-column-content"
+              >
+
+                  <sticky
+                    :sticky-id="sticky.id"
+                    :sticky-text="sticky.text"
+                    :sticky-location="tableCellId(row.id, column.id)"
+                    :key="sticky.id"
+                    v-for="sticky in stickies[tableCellId(row.id, column.id)]"
+                    class="sticky-content"
+                  ></sticky>
+
                 <transition name="fade">
                   <new-sticky-form
                     v-if="showNewStickyUI(row.id, column.id)"
@@ -57,7 +80,7 @@
           </tr>
         </tbody>
       </table>
-    </div>  
+    </div>
       <div class="action-notes-wrapper">
         <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
       </div>
@@ -69,6 +92,7 @@
   import _ from 'lodash'
   import * as deepstream from 'deepstream.io-client-js'
   import shortid from 'shortid'
+  import * as auth0 from 'auth0-js'
   import NewStickyForm from '@/components/NewStickyForm'
   import Sticky from '@/components/Sticky'
 
@@ -77,8 +101,14 @@
     components: { NewStickyForm, Sticky },
     data () {
       return {
+        auth0: new auth0.WebAuth({
+          domain: 'retrotool.auth0.com',
+          clientID: 'TUp4FQ7ycV7UYcLahoa-FGGjlgVwVVXQ',
+          callbackURL: 'http://localhost:3000/callback'
+        }),
+        userDetails: false,
         ds: {},
-        name: 'board1',
+        name: 'board100',
         columns: [
           {
             label: 'Continue Doing',
@@ -107,13 +137,28 @@
             id: shortid.generate()
           }
         ],
-        actionItems: 'Action Items:',
+        actionItems: '',
         connectionState: null,
         newStickyUILocation: '',
         stickies: {}
       }
     },
     methods: {
+      logout: function () {
+        this.userDetails = false
+        localStorage.removeItem('userDetails')
+      },
+      login: function () {
+        this.auth0.popup.authorize({
+          connection: 'google-oauth2',
+          responseType: 'token',
+          redirectUri: 'http://localhost:8080/',
+          scope: 'openid name email picture'
+        }, (err) => {
+          console.log(err)
+          this.userDetails = JSON.parse(localStorage.getItem('userDetails'))
+        })
+      },
       updateBoard: function (key, newData) {
         this.record.set(key, newData)
       },
@@ -164,6 +209,43 @@
           id: stickyId,
           text: stickyText
         })
+        this.updateBoard('stickies', this.stickies)
+      },
+      handleDragOver (ev) {
+        ev.preventDefault()
+      },
+      stickyDrop (newLocation, ev) {
+        let allOldStickies = this.stickies
+        let oldStickyData = JSON.parse(ev.dataTransfer.getData('text'))
+
+        // remove from existing location
+
+        this.stickies = {}
+
+        allOldStickies[oldStickyData.oldLocation] = _.filter(
+          allOldStickies[oldStickyData.oldLocation],
+          sticky => sticky.id !== oldStickyData.id
+        )
+
+        // add to new location
+        allOldStickies[newLocation] = _.merge(allOldStickies[newLocation] || [], [{id: oldStickyData.id, text: oldStickyData.stickyText}])
+
+        this.stickies = allOldStickies
+        this.updateBoard('stickies', this.stickies)
+      },
+      log (foo) {
+        console.log(foo)
+      },
+      noop () {
+        return false
+      },
+      evnoop (ev) {
+        ev.preventDefault()
+        return false
+      },
+      startDrag (sticky, oldLocation, ev) {
+        ev.dataTransfer.setData('text/plain', JSON.stringify({id: sticky.id, oldLocation}))
+        ev.dataTransfer.effectAllowed = 'move'
       }
     },
     created: function () {
@@ -173,6 +255,8 @@
         this.connectionState = connectionState
       })
 
+      this.userDetails = JSON.parse(localStorage.getItem('userDetails'))
+
       // Get/Set the board
       this.record = this.ds.record.getRecord('board/' + this.name)
 
@@ -180,9 +264,15 @@
         if (values.rows !== undefined) {
           this.rows = values.rows
         }
+
         if (values.columns !== undefined) {
           this.columns = values.columns
         }
+
+        if (values.stickies !== undefined) {
+          this.stickies = values.stickies
+        }
+
         this.name = values.name
       })
     }
