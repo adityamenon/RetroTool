@@ -2,6 +2,13 @@
   <section>
     <div>
       Connection-State is: <em id="connection-state">{{connectionState}}</em>
+      <span v-if="userDetails">
+        {{userDetails.name}}
+        <img :src="userDetails.picture" width="50" height="50">
+        <button v-on:click="logout()"> Logout </button>
+
+      </span>
+      <button v-else v-on:click="login()"> Login </button>
     </div>
     <table>
 
@@ -39,12 +46,19 @@
   import * as deepstream from 'deepstream.io-client-js'
   import shortid from 'shortid'
   import NewSticky from '@/components/NewSticky'
+  import * as auth0 from 'auth0-js'
 
   export default {
     name: 'board',
     components: { NewSticky },
     data () {
       return {
+        auth0: new auth0.WebAuth({
+          domain: 'retrotool.auth0.com',
+          clientID: 'TUp4FQ7ycV7UYcLahoa-FGGjlgVwVVXQ',
+          callbackURL: 'http://localhost:3000/callback'
+        }),
+        userDetails: false,
         name: 'board1',
         columns: [
           {
@@ -80,6 +94,20 @@
       }
     },
     methods: {
+      logout: function () {
+        this.userDetails = false
+      },
+      login: function () {
+        this.auth0.popup.authorize({
+          connection: 'google-oauth2',
+          responseType: 'token',
+          redirectUri: 'http://localhost:8080/',
+          scope: 'openid name email picture'
+        }, (err) => {
+          console.log(err)
+          this.userDetails = JSON.parse(localStorage.getItem('userDetails'))
+        })
+      },
       updateBoard: function (key, newData) {
         this.record.set(key, newData)
       },
@@ -125,6 +153,8 @@
       .on('connectionStateChanged', connectionState => {
         this.connectionState = connectionState
       })
+
+      this.userDetails = JSON.parse(localStorage.getItem('userDetails'))
 
       // Get/Set the board
       this.record = this.ds.record.getRecord('board/' + this.name)
