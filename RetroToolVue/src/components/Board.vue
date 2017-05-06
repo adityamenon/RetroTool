@@ -4,6 +4,7 @@
       Connection-State is: <em id="connection-state">{{connectionState}}</em>
     </div>
     <table>
+
       <thead>
       <th></th>
       <th v-for="column in columns">
@@ -13,6 +14,7 @@
       </th>
       <th><button v-on:click="addColumn">+</button></th>
       </thead>
+
       <tbody>
       <tr v-for="row in rows">
         <td>
@@ -20,52 +22,56 @@
           <span contenteditable="true" v-on:blur="changeRowLabel(row.id, $event)">{{ row.label }}</span>
         </td>
         <td v-for="column in columns">
+          <button v-on:click="newStickyUI(row.id, column.id)">s</button>
         </td>
       </tr>
       </tbody>
     </table>
+
     <button v-on:click="addRow">+</button>
 
     <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
   </section>
 </template>
 
-
 <script>
   import _ from 'lodash'
   import * as deepstream from 'deepstream.io-client-js'
+  import shortid from 'shortid'
+  import NewSticky from '@/components/NewSticky'
 
   export default {
     name: 'board',
+    components: { NewSticky },
     data () {
       return {
         name: 'board1',
         columns: [
           {
             label: 'Continue Doing',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Start Doing',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Stop Doing',
-            id: Math.random()
+            id: shortid.generate()
           }
         ],
         rows: [
           {
             label: 'Engineering Practices',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Performance',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Requirements Analysis',
-            id: Math.random()
+            id: shortid.generate()
           }
         ],
         actionItems: 'Action Items:',
@@ -86,11 +92,11 @@
         this.updateBoard('rows', this.rows)
       },
       addColumn () {
-        this.columns.push({label: 'New Column', id: Math.random()})
+        this.columns.push({label: 'New Column', id: shortid.generate()})
         this.updateBoard('columns', this.columns)
       },
       addRow () {
-        this.rows.push({label: 'New Row', id: Math.random()})
+        this.rows.push({label: 'New Row', id: shortid.generate()})
         this.updateBoard('rows', this.rows)
       },
       changeColumnLabel (id, ev) {
@@ -108,6 +114,9 @@
           {id: id, label: ev.target.innerText}
         )
         this.updateBoard('rows', this.rows)
+      },
+      newStickyUI (rowId, columnId) {
+        console.log(NewSticky)
       }
     },
     created: function () {
