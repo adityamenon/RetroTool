@@ -22,7 +22,13 @@
           <span contenteditable="true" v-on:blur="changeRowLabel(row.id, $event)">{{ row.label }}</span>
         </td>
         <td v-for="column in columns">
-          <button v-on:click="newStickyUI(row.id, column.id)">s</button>
+          <new-sticky-form
+            v-if="showNewStickyUI(row.id, column.id)"
+            :new-sticky-location="tableCellId(row.id, column.id)"></new-sticky-form>
+          <button v-else v-on:click="newStickyUI(row.id, column.id)">s</button>
+          <div v-for="sticky in stickies[tableCellId(row.id, column.id)]">
+            <sticky :sticky-id="sticky.id" :sticky-text="sticky.text"></sticky>
+          </div>
         </td>
       </tr>
       </tbody>
@@ -38,13 +44,15 @@
   import _ from 'lodash'
   import * as deepstream from 'deepstream.io-client-js'
   import shortid from 'shortid'
-  import NewSticky from '@/components/NewSticky'
+  import NewStickyForm from '@/components/NewStickyForm'
+  import Sticky from '@/components/Sticky'
 
   export default {
     name: 'board',
-    components: { NewSticky },
+    components: { NewStickyForm, Sticky },
     data () {
       return {
+        ds: {},
         name: 'board1',
         columns: [
           {
@@ -75,8 +83,9 @@
           }
         ],
         actionItems: 'Action Items:',
-        ds: null,
-        connectionState: null
+        connectionState: null,
+        newStickyUILocation: '',
+        stickies: {}
       }
     },
     methods: {
@@ -116,7 +125,20 @@
         this.updateBoard('rows', this.rows)
       },
       newStickyUI (rowId, columnId) {
-        console.log(NewSticky)
+        this.newStickyUILocation = this.tableCellId(rowId, columnId)
+      },
+      showNewStickyUI (rowId, columnId) {
+        return this.newStickyUILocation === this.tableCellId(rowId, columnId)
+      },
+      tableCellId (rowId, columnId) {
+        return btoa(`${rowId},${columnId}`)
+      },
+      addSticky (newStickyLocation, stickyId, stickyText) {
+        if (!this.stickies[newStickyLocation]) this.stickies[newStickyLocation] = []
+        this.stickies[newStickyLocation].push({
+          id: stickyId,
+          text: stickyText
+        })
       }
     },
     created: function () {
