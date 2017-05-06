@@ -34,9 +34,11 @@
 <script>
   import _ from 'lodash'
   import shortid from 'shortid'
+  import NewSticky from '@/components/NewSticky'
 
   export default {
     name: 'board',
+    components: { NewSticky },
     data () {
       return {
         columns: [
@@ -98,7 +100,7 @@
         )
       },
       newStickyUI (rowId, columnId) {
-        console.log
+        console.log(NewSticky)
       }
     }
   }
