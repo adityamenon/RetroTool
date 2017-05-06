@@ -8,13 +8,15 @@
 import * as auth0 from 'auth0-js'
 export default {
   name: 'app',
-  data: {
-    userDetails: {},
-    auth0: new auth0.WebAuth({
-      domain: 'retrotool.auth0.com',
-      clientID: 'TUp4FQ7ycV7UYcLahoa-FGGjlgVwVVXQ',
-      callbackURL: 'http://localhost:3000/callback'
-    })
+  data () {
+    return {
+      userDetails: {},
+      auth0: new auth0.WebAuth({
+        domain: 'retrotool.auth0.com',
+        clientID: 'TUp4FQ7ycV7UYcLahoa-FGGjlgVwVVXQ',
+        callbackURL: 'http://localhost:3000/callback'
+      })
+    }
   },
   created: function () {
     this.auth0 = new auth0.WebAuth({
@@ -43,7 +45,7 @@ export default {
 
 <style>
     html, body{
-        font-family: 'Ubuntu', sans-serif;
+      font-family: 'Ubuntu', sans-serif;
       background-color: #1e434c;
     }
     #app {
