@@ -1,5 +1,8 @@
 <template>
   <section>
+    <div>
+      Connection-State is: <em id="connection-state">{{connectionState}}</em>
+    </div>
     <table>
       <thead>
       <th></th>
@@ -30,11 +33,13 @@
 
 <script>
   import _ from 'lodash'
+  import * as deepstream from 'deepstream.io-client-js'
 
   export default {
     name: 'board',
     data () {
       return {
+        name: 'board1',
         columns: [
           {
             label: 'Continue Doing',
@@ -63,21 +68,30 @@
             id: Math.random()
           }
         ],
-        actionItems: 'Action Items:'
+        actionItems: 'Action Items:',
+        ds: null,
+        connectionState: null
       }
     },
     methods: {
+      updateBoard: function (key, newData) {
+        this.record.set(key, newData)
+      },
       removeColumn: function (id) {
         this.columns = _.filter(this.columns, column => column.id !== id)
+        this.updateBoard('columns', this.columns)
       },
       removeRow: function (id) {
         this.rows = _.filter(this.rows, row => row.id !== id)
+        this.updateBoard('rows', this.rows)
       },
       addColumn () {
         this.columns.push({label: 'New Column', id: Math.random()})
+        this.updateBoard('columns', this.columns)
       },
       addRow () {
         this.rows.push({label: 'New Row', id: Math.random()})
+        this.updateBoard('rows', this.rows)
       },
       changeColumnLabel (id, ev) {
         this.columns.splice(
@@ -85,6 +99,7 @@
           1,
           {id: id, label: ev.target.innerText}
         )
+        this.updateBoard('columns', this.columns)
       },
       changeRowLabel (id, ev) {
         this.rows.splice(
@@ -92,7 +107,28 @@
           1,
           {id: id, label: ev.target.innerText}
         )
+        this.updateBoard('rows', this.rows)
       }
+    },
+    created: function () {
+      this.ds = deepstream('wss://035.deepstreamhub.com?apiKey=930bf8a7-1034-4f37-9721-ac13c12eda95')
+      .login()
+      .on('connectionStateChanged', connectionState => {
+        this.connectionState = connectionState
+      })
+
+      // Get/Set the board
+      this.record = this.ds.record.getRecord('board/' + this.name)
+
+      this.record.subscribe(values => {
+        if (values.rows !== undefined) {
+          this.rows = values.rows
+        }
+        if (values.columns !== undefined) {
+          this.columns = values.columns
+        }
+        this.name = values.name
+      })
     }
   }
 </script>
