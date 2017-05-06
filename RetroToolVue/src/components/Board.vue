@@ -233,6 +233,18 @@
         this.stickies = allOldStickies
         this.updateBoard('stickies', this.stickies)
       },
+      deleteSticky (stickyId, stickyLocation) {
+        let allOldStickies = this.stickies
+
+        this.stickies = {}
+
+        allOldStickies[stickyLocation] = _.filter(
+          allOldStickies[stickyLocation],
+          sticky => sticky.id !== stickyId
+        )
+
+        this.stickies = allOldStickies
+      },
       log (foo) {
         console.log(foo)
       },

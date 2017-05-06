@@ -1,6 +1,8 @@
 <template>
   <div draggable="true" v-on:dragstart="startDrag($event)" :id="stickyId">
     <span>{{ stickyText }}</span>
+    <br>
+    <button v-on:click="deleteSticky(stickyId)">Delete</button>
   </div>
 </template>
 
@@ -16,6 +18,9 @@
           oldLocation: this.stickyLocation
         }))
         ev.dataTransfer.effectAllowed = 'move'
+      },
+      deleteSticky (stickyId) {
+        this.$parent.deleteSticky(stickyId, this.stickyLocation)
       }
     }
   }
