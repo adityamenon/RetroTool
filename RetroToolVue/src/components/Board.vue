@@ -135,6 +135,7 @@
     methods: {
       logout: function () {
         this.userDetails = false
+        this.localStorage.removeItem('userDetails')
       },
       login: function () {
         this.auth0.popup.authorize({

@@ -17,7 +17,6 @@ export default {
     })
   },
   created: function () {
-//    alert('hey')
     this.auth0 = new auth0.WebAuth({
       domain: 'retrotool.auth0.com',
       clientID: 'TUp4FQ7ycV7UYcLahoa-FGGjlgVwVVXQ',
@@ -25,13 +24,18 @@ export default {
     })
 
     this.auth0.parseHash(window.location.hash, (err, result) => {
-      console.log('hey', result, err)
       parent.postMessage(err || result, 'http://localhost:8080/')
-      this.auth0.client.userInfo(result.accessToken, (err, user) => {
-        console.log(err)
-        localStorage.setItem('userDetails', JSON.stringify(user))
-        window.close()
-      })
+      if (result) {
+        this.auth0.client.userInfo(result.accessToken, (err, user) => {
+          if (err) {
+            console.log(err)
+          } else {
+            localStorage.setItem('userDetails', JSON.stringify(user))
+          }
+
+          window.close()
+        })
+      }
     })
   }
 }
