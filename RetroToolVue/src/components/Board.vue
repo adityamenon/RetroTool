@@ -1,18 +1,21 @@
 <template>
-  <table>
-    <thead>
+  <section>
+    <table>
+      <thead>
       <th></th>
       <th v-for="column in columns"> {{ column }} </th>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
       <tr v-for="row in rows">
         <td>{{ row }}</td>
         <td v-for="column in columns">
-
         </td>
       </tr>
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+
+    <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
+  </section>
 </template>
 
 <script>
@@ -21,7 +24,8 @@
     data () {
       return {
         columns: ['Continue', 'Start Doing', 'Stop Doing'],
-        rows: ['Engineering Practices', 'Performance', 'Business Requirements Analysis']
+        rows: ['Engineering Practices', 'Performance', 'Business Requirements Analysis'],
+        actionItems: 'Action Items:'
       }
     }
   }
