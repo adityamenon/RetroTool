@@ -1,6 +1,7 @@
 <template>
   <section>
     <table>
+
       <thead>
       <th></th>
       <th v-for="column in columns">
@@ -10,6 +11,7 @@
       </th>
       <th><button v-on:click="addColumn">+</button></th>
       </thead>
+
       <tbody>
       <tr v-for="row in rows">
         <td>
@@ -17,19 +19,21 @@
           <span contenteditable="true" v-on:blur="changeRowLabel(row.id, $event)">{{ row.label }}</span>
         </td>
         <td v-for="column in columns">
+          <button v-on:click="newStickyUI(row.id, column.id)">s</button>
         </td>
       </tr>
       </tbody>
     </table>
+
     <button v-on:click="addRow">+</button>
 
     <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
   </section>
 </template>
 
-
 <script>
   import _ from 'lodash'
+  import shortid from 'shortid'
 
   export default {
     name: 'board',
@@ -38,29 +42,29 @@
         columns: [
           {
             label: 'Continue Doing',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Start Doing',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Stop Doing',
-            id: Math.random()
+            id: shortid.generate()
           }
         ],
         rows: [
           {
             label: 'Engineering Practices',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Performance',
-            id: Math.random()
+            id: shortid.generate()
           },
           {
             label: 'Requirements Analysis',
-            id: Math.random()
+            id: shortid.generate()
           }
         ],
         actionItems: 'Action Items:'
@@ -74,10 +78,10 @@
         this.rows = _.filter(this.rows, row => row.id !== id)
       },
       addColumn () {
-        this.columns.push({label: 'New Column', id: Math.random()})
+        this.columns.push({label: 'New Column', id: shortid.generate()})
       },
       addRow () {
-        this.rows.push({label: 'New Row', id: Math.random()})
+        this.rows.push({label: 'New Row', id: shortid.generate()})
       },
       changeColumnLabel (id, ev) {
         this.columns.splice(
@@ -92,6 +96,9 @@
           1,
           {id: id, label: ev.target.innerText}
         )
+      },
+      newStickyUI (rowId, columnId) {
+        console.log
       }
     }
   }
