@@ -1,6 +1,6 @@
 <template>
   <div>
-    {{ stickyText }}
+    <span>{{ stickyText }}</span>
   </div>
 </template>
 
@@ -13,7 +13,4 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-  div {
-    border: 1px dashed brown;
-  }
 </style>

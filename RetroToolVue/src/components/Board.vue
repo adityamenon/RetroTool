@@ -1,10 +1,14 @@
 <template>
-  <section class="retro-board-container">
-  <div>
-    Connection-State is: <em id="connection-state">{{connectionState}}</em>
+  <section class="app-container">
+  <div class="connection-state-container">
+    <div class="connection-state-wrapper">
+      <span class="connection-state-text">
+        Connection-State is: <em id="connection-state">{{connectionState}}</em>
+      </span>
+    </div>
   </div>
-
-  <div class="retro-board-wrapper">
+  <div class="retro-board-container">  
+    <div class="retro-board-wrapper">
       <table class="retro-board-table" cellspacing="0">
         <thead class="retro-board-table-head">
           <tr>
@@ -21,9 +25,9 @@
               </div>
             </th>
             <th v-for="column in columns" class="info-column">
-              <div>
+              <div class="info-head">
                 <span contenteditable="true" v-on:blur="changeColumnLabel(column.id, $event)">{{column.label}}</span><br/>
-                <button v-on:click="removeColumn(column.id)">-</button>
+                <span class="info-head-delete"><i class="fa fa-trash" aria-hidden="true" v-on:click="removeColumn(column.id)"></i></span>
               </div>
             </th>
           </tr>
@@ -31,26 +35,32 @@
         <tbody class="retro-board-table-body">
           <tr v-for="row in rows">
             <td class="title-column">
-              <div>
-                <button v-on:click="removeRow(row.id)">-</button>&nbsp;
+              <div class="title-column-content">
                 <span contenteditable="true" v-on:blur="changeRowLabel(row.id, $event)">{{ row.label }}</span>
+                <span class="title-info-delete"><i class="fa fa-trash" aria-hidden="true" v-on:click="removeRow(row.id)"></i></span>
               </div>
             </td>
             <td v-for="column in columns" class="info-column">
-              <new-sticky-form
-                v-if="showNewStickyUI(row.id, column.id)"
-                :new-sticky-location="tableCellId(row.id, column.id)"></new-sticky-form>
-              <button v-else v-on:click="newStickyUI(row.id, column.id)">s</button>
-              <div v-for="sticky in stickies[tableCellId(row.id, column.id)]">
-                <sticky :sticky-id="sticky.id" :sticky-text="sticky.text"></sticky>
+              <div class="info-column-content">
+                <div v-for="sticky in stickies[tableCellId(row.id, column.id)]" class="sticky-content">
+                  <sticky :sticky-id="sticky.id" :sticky-text="sticky.text"></sticky>
+                </div>
+                <transition name="fade">
+                  <new-sticky-form
+                    v-if="showNewStickyUI(row.id, column.id)"
+                    :new-sticky-location="tableCellId(row.id, column.id)">
+                  </new-sticky-form>
+                  <span v-else v-on:click="newStickyUI(row.id, column.id)" title="Add Sticky here"><i class="fa fa-plus-circle" aria-hidden="true"></i></span>
+                </transition>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-    <div class="action-notes-wrapper">
-      <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
+    </div>  
+      <div class="action-notes-wrapper">
+        <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
+      </div>
     </div>
   </section>
 </template>
@@ -190,6 +200,15 @@
   .i-block{
     display: inline-block;
   }
+  .app-container{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .connection-state-wrapper{
+    padding: 8px;
+    color: #fff;
+  }
   .retro-board-container {
     width: 100%;
     display: flex;
@@ -213,9 +232,7 @@
   }
   .title-column{
     width: 15%;
-  }
-  .info-column{
-    min-width: 200px;
+    background-color: #5d4c46;
   }
   tr .info-column:nth-of-type(6n + 1){
     background-color: #c1d4dd;
@@ -242,9 +259,6 @@
     justify-content: center;
     align-items: stretch;
   }
-  tr{
-
-  }
   th,td {
     padding: 8px 12px;
   }
@@ -265,11 +279,65 @@
   .add-column{
     align-self: flex-start;
   }
-  .sticki-wrapper{
-    display: flex;
+  .title-column-content{
     min-height: 75px;
-    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .info-column-content{
+    min-height: 75px;
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
     justify-content: center;
     align-items: center;
+  }
+  .info-column-content .sticky-content:nth-of-type(6n + 1){
+    background-color: #0072bb;
+  }
+  .info-column-content .sticky-content:nth-of-type(6n + 2){
+    background-color: #32b92d;
+  }
+  .info-column-content .sticky-content:nth-of-type(6n + 3){
+    background-color: #ff6eb0;
+  }
+  .info-column-content .sticky-content:nth-of-type(6n + 4){
+    background-color: #ffcb00;
+  }
+  .info-column-content .sticky-content:nth-of-type(6n + 5){
+    background-color: #93228d;
+  }
+  .info-column-content .sticky-content:nth-of-type(6n + 6){
+    background-color: #ff7a5a;
+  }
+  .sticky-content{
+    margin: 2px;
+    cursor: pointer;
+  }
+  .sticky-form-container{
+    position: absolute;
+    width: 100%;
+    padding: 4px;
+    height: calc(100% + 16px);
+    top: -12px;
+    background-color: #fff;
+    box-shadow: 1px 1px 2px 1px rgba(0,0,0,0.75);
+  }
+  .fade-enter-active, .fade-leave-active {
+    transition: opacity .5s;
+  }
+  .fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+    opacity: 0;
+  }
+  .title-info-delete{
+    margin-left: 8px;
+  }
+  .info-head{
+    display: flex;
+    justify-content: space-around;
+  }
+  .fa{
+    cursor: pointer;
   }
 </style>

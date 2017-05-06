@@ -12,7 +12,7 @@ export default {
 
 <style>
     html, body{
-        font-family: 'Ubuntu', sans-serif;
+      font-family: 'Ubuntu', sans-serif;
       background-color: #1e434c;
     }
     #app {
