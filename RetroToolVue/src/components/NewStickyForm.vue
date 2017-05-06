@@ -1,6 +1,6 @@
 <template>
   <form>
-    <textarea placeholder="Your Sticky Says:" v-model="stickyText"></textarea>
+    <textarea placeholder="Your Sticky Says:" v-model="stickyText" maxlength="100"></textarea>
     <br>
     <button v-on:click="submitSticky(newStickyLocation, $event)">Submit</button> &nbsp;
     <button v-on:click="cancelSticky(newStickyLocation, $event)">Cancel</button>

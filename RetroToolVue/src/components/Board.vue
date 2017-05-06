@@ -36,13 +36,28 @@
                 <span contenteditable="true" v-on:blur="changeRowLabel(row.id, $event)">{{ row.label }}</span>
               </div>
             </td>
-            <td v-for="column in columns" class="info-column">
-              <new-sticky-form
-                v-if="showNewStickyUI(row.id, column.id)"
-                :new-sticky-location="tableCellId(row.id, column.id)"></new-sticky-form>
-              <button v-else v-on:click="newStickyUI(row.id, column.id)">s</button>
-              <div v-for="sticky in stickies[tableCellId(row.id, column.id)]">
-                <sticky :sticky-id="sticky.id" :sticky-text="sticky.text"></sticky>
+            <td
+              v-for="column in columns"
+              class="info-column"
+              :id="tableCellId(row.id, column.id)"
+            >
+              <div
+                v-on:dragover="handleDragOver($event)"
+                v-on:dragdrop="stickyDrop(tableCellId(row.id, column.id), $event)"
+                v-on:drop="stickyDrop(tableCellId(row.id, column.id), $event)"
+                class="drop-zone"
+              >
+                <new-sticky-form
+                  v-if="showNewStickyUI(row.id, column.id)"
+                  :new-sticky-location="tableCellId(row.id, column.id)"></new-sticky-form>
+                <button v-else v-on:click="newStickyUI(row.id, column.id)">s</button>
+                <sticky
+                  :sticky-id="sticky.id"
+                  :sticky-text="sticky.text"
+                  :sticky-location="tableCellId(row.id, column.id)"
+                  :key="sticky.id"
+                  v-for="sticky in stickies[tableCellId(row.id, column.id)]"
+                ></sticky>
               </div>
             </td>
           </tr>
@@ -52,6 +67,8 @@
     <div class="action-notes-wrapper">
       <textarea cols="30" rows="10" v-model="actionItems" placeholder="Action Items"></textarea>
     </div>
+
+
   </section>
 </template>
 
@@ -154,6 +171,41 @@
           id: stickyId,
           text: stickyText
         })
+      },
+      handleDragOver (ev) {
+        ev.preventDefault()
+      },
+      stickyDrop (newLocation, ev) {
+        let allOldStickies = this.stickies
+        let oldStickyData = JSON.parse(ev.dataTransfer.getData('text'))
+
+        // remove from existing location
+
+        this.stickies = {}
+
+        allOldStickies[oldStickyData.oldLocation] = _.filter(
+          allOldStickies[oldStickyData.oldLocation],
+          sticky => sticky.id !== oldStickyData.id
+        )
+
+        // add to new location
+        allOldStickies[newLocation] = [{id: oldStickyData.id, text: oldStickyData.stickyText}]
+
+        this.stickies = allOldStickies
+      },
+      log (foo) {
+        console.log(foo)
+      },
+      noop () {
+        return false
+      },
+      evnoop (ev) {
+        ev.preventDefault()
+        return false
+      },
+      startDrag (sticky, oldLocation, ev) {
+        ev.dataTransfer.setData('text/plain', JSON.stringify({id: sticky.id, oldLocation}))
+        ev.dataTransfer.effectAllowed = 'move'
       }
     },
     created: function () {
@@ -265,11 +317,8 @@
   .add-column{
     align-self: flex-start;
   }
-  .sticki-wrapper{
-    display: flex;
-    min-height: 75px;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
+  .drop-zone {
+    padding: 15px;
+    border: 1px solid red;
   }
 </style>
