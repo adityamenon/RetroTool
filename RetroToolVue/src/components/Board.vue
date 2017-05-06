@@ -108,7 +108,7 @@
         }),
         userDetails: false,
         ds: {},
-        name: 'board100',
+        name: 'board1',
         columns: [
           {
             label: 'Continue Doing',
@@ -217,7 +217,6 @@
       stickyDrop (newLocation, ev) {
         let allOldStickies = this.stickies
         let oldStickyData = JSON.parse(ev.dataTransfer.getData('text'))
-
         // remove from existing location
 
         this.stickies = {}
@@ -228,7 +227,14 @@
         )
 
         // add to new location
-        allOldStickies[newLocation] = _.merge(allOldStickies[newLocation] || [], [{id: oldStickyData.id, text: oldStickyData.stickyText}])
+        if (!allOldStickies[newLocation]) {
+          allOldStickies[newLocation] = []
+        }
+
+        allOldStickies[newLocation].push({
+          id: oldStickyData.id,
+          text: oldStickyData.stickyText
+        })
 
         this.stickies = allOldStickies
         this.updateBoard('stickies', this.stickies)
@@ -244,6 +250,7 @@
         )
 
         this.stickies = allOldStickies
+        this.updateBoard('stickies', this.stickies)
       },
       log (foo) {
         console.log(foo)

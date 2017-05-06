@@ -2,7 +2,9 @@
   <div draggable="true" v-on:dragstart="startDrag($event)" :id="stickyId">
     <span>{{ stickyText }}</span>
     <br>
-    <button v-on:click="deleteSticky(stickyId)">Delete</button>
+    <span v-on:click="deleteSticky(stickyId)">
+      <i class="fa fa-trash" aria-hidden="true"></i>
+    </span>
   </div>
 </template>
 
